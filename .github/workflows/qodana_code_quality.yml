@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - qodana
 
 jobs:
   qodana:

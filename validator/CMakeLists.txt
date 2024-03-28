@@ -43,6 +43,7 @@ set(VALIDATOR_HEADERS
   fabric.h
   interfaces/db.h
   interfaces/external-message.h
+  interfaces/liteserver.h
   interfaces/proof.h
   interfaces/shard.h
   interfaces/signature-set.h
@@ -52,6 +53,7 @@ set(VALIDATOR_HEADERS
   invariants.hpp
   
   import-db-slice.hpp
+  queue-size-counter.hpp
 
   manager-disk.h
   manager-disk.hpp
@@ -77,6 +79,7 @@ set(VALIDATOR_SOURCE
   validator-full-id.cpp
   validator-group.cpp
   validator-options.cpp
+  queue-size-counter.cpp
 
   downloaders/wait-block-data.cpp
   downloaders/wait-block-state.cpp
@@ -98,7 +101,8 @@ set(DISK_VALIDATOR_SOURCE
   validator-full-id.cpp
   validator-group.cpp
   validator-options.cpp
-  
+  queue-size-counter.cpp
+
   downloaders/wait-block-data-disk.cpp
   downloaders/wait-block-state.cpp
   downloaders/wait-block-state-merge.cpp
@@ -117,7 +121,8 @@ set(HARDFORK_VALIDATOR_SOURCE
   validator-full-id.cpp
   validator-group.cpp
   validator-options.cpp
-  
+  queue-size-counter.cpp
+
   downloaders/wait-block-data-disk.cpp
   downloaders/wait-block-state.cpp
   downloaders/wait-block-state-merge.cpp
@@ -139,7 +144,11 @@ set(FULL_NODE_SOURCE
   full-node-master.h
   full-node-master.hpp
   full-node-master.cpp
-  
+  full-node-private-overlay.hpp
+  full-node-private-overlay.cpp
+  full-node-serializer.hpp
+  full-node-serializer.cpp
+
   net/download-block.hpp
   net/download-block.cpp
   net/download-block-new.hpp

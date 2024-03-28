@@ -72,6 +72,7 @@
 #include "block-auto.h"
 #include "block-parse.h"
 #include "common/delay.h"
+#include "block/precompiled-smc/PrecompiledSmartContract.h"
 
 Config::Config() {
   out_port = 3278;
@@ -1363,6 +1364,11 @@ td::Status ValidatorEngine::load_global_config() {
   if (!session_logs_file_.empty()) {
     validator_options_.write().set_session_logs_file(session_logs_file_);
   }
+  validator_options_.write().set_celldb_compress_depth(celldb_compress_depth_);
+  validator_options_.write().set_max_open_archive_files(max_open_archive_files_);
+  validator_options_.write().set_archive_preload_period(archive_preload_period_);
+  validator_options_.write().set_disable_rocksdb_stats(disable_rocksdb_stats_);
+  validator_options_.write().set_nonfinal_ls_queries_enabled(nonfinal_ls_queries_enabled_);
 
   std::vector<ton::BlockIdExt> h;
   for (auto &x : conf.validator_->hardforks_) {
@@ -1595,6 +1601,12 @@ void ValidatorEngine::load_config(td::Promise<td::Unit> promise) {
   }
   auto conf_data_R = td::read_file(config_file_);
   if (conf_data_R.is_error()) {
+    conf_data_R = td::read_file(temp_config_file());
+    if (conf_data_R.is_ok()) {
+      td::rename(temp_config_file(), config_file_).ensure();
+    }
+  }
+  if (conf_data_R.is_error()) {
     auto P = td::PromiseCreator::lambda(
         [name = local_config_, new_name = config_file_, promise = std::move(promise)](td::Result<td::Unit> R) {
           if (R.is_error()) {
@@ -1642,12 +1654,15 @@ void ValidatorEngine::load_config(td::Promise<td::Unit> promise) {
 void ValidatorEngine::write_config(td::Promise<td::Unit> promise) {
   auto s = td::json_encode<std::string>(td::ToJson(*config_.tl().get()), true);
 
-  auto S = td::write_file(config_file_, s);
-  if (S.is_ok()) {
-    promise.set_value(td::Unit());
-  } else {
+  auto S = td::write_file(temp_config_file(), s);
+  if (S.is_error()) {
+    td::unlink(temp_config_file()).ignore();
     promise.set_error(std::move(S));
+    return;
   }
+  td::unlink(config_file_).ignore();
+  TRY_STATUS_PROMISE(promise, td::rename(temp_config_file(), config_file_));
+  promise.set_value(td::Unit());
 }
 
 td::Promise<ton::PublicKey> ValidatorEngine::get_key_promise(td::MultiPromise::InitGuard &ig) {
@@ -3396,6 +3411,19 @@ void ValidatorEngine::run_control_query(ton::ton_api::engine_validator_getShardO
           promise.set_value(create_control_query_error(td::Status::Error(ton::ErrorCode::notready, "no such block")));
           return;
         }
+        if (!dest) {
+          td::actor::send_closure(
+              manager, &ton::validator::ValidatorManagerInterface::get_out_msg_queue_size, handle->id(),
+              [promise = std::move(promise)](td::Result<td::uint32> R) mutable {
+                if (R.is_error()) {
+                  promise.set_value(create_control_query_error(R.move_as_error_prefix("failed to get queue size: ")));
+                } else {
+                  promise.set_value(ton::create_serialize_tl_object<ton::ton_api::engine_validator_shardOutQueueSize>(
+                      R.move_as_ok()));
+                }
+              });
+          return;
+        }
         td::actor::send_closure(
             manager, &ton::validator::ValidatorManagerInterface::get_shard_state_from_db, handle,
             [=, promise = std::move(promise)](td::Result<td::Ref<ton::validator::ShardState>> R) mutable {
@@ -3760,6 +3788,41 @@ int main(int argc, char *argv[]) {
     TRY_RESULT(at, td::to_integer_safe<td::uint32>(arg));
     acts.push_back([&x, at]() { td::actor::send_closure(x, &ValidatorEngine::schedule_shutdown, (double)at); });
     return td::Status::OK();
+  });
+  p.add_checked_option('\0', "celldb-compress-depth",
+                       "optimize celldb by storing cells of depth X with whole subtrees (experimental, default: 0)",
+                       [&](td::Slice arg) {
+                         TRY_RESULT(value, td::to_integer_safe<td::uint32>(arg));
+                         acts.push_back([&x, value]() {
+                           td::actor::send_closure(x, &ValidatorEngine::set_celldb_compress_depth, value);
+                         });
+                         return td::Status::OK();
+                       });
+  p.add_checked_option(
+      '\0', "max-archive-fd", "limit for a number of open file descriptirs in archive manager. 0 is unlimited (default)",
+      [&](td::Slice s) -> td::Status {
+        TRY_RESULT(v, td::to_integer_safe<size_t>(s));
+        acts.push_back([&x, v]() { td::actor::send_closure(x, &ValidatorEngine::set_max_open_archive_files, v); });
+        return td::Status::OK();
+      });
+  p.add_checked_option(
+      '\0', "archive-preload-period", "open archive slices for the past X second on startup (default: 0)",
+      [&](td::Slice s) -> td::Status {
+        auto v = td::to_double(s);
+        if (v < 0) {
+          return td::Status::Error("sync-before should be non-negative");
+        }
+        acts.push_back([&x, v]() { td::actor::send_closure(x, &ValidatorEngine::set_archive_preload_period, v); });
+        return td::Status::OK();
+      });
+  p.add_option('\0', "enable-precompiled-smc",
+               "enable exectuion of precompiled contracts (experimental, disabled by default)",
+               []() { block::precompiled::set_precompiled_execution_enabled(true); });
+  p.add_option('\0', "disable-rocksdb-stats", "disable gathering rocksdb statistics (enabled by default)", [&]() {
+    acts.push_back([&x]() { td::actor::send_closure(x, &ValidatorEngine::set_disable_rocksdb_stats, true); });
+  });
+  p.add_option('\0', "nonfinal-ls", "enable special LS queries to non-finalized blocks", [&]() {
+    acts.push_back([&x]() { td::actor::send_closure(x, &ValidatorEngine::set_nonfinal_ls_queries_enabled); });
   });
   auto S = p.run(argc, argv);
   if (S.is_error()) {

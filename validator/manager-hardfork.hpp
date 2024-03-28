@@ -23,6 +23,7 @@
 #include "validator-group.hpp"
 #include "manager-init.h"
 #include "manager-hardfork.h"
+#include "queue-size-counter.hpp"
 
 #include <map>
 #include <set>
@@ -437,6 +438,43 @@ class ValidatorManagerImpl : public ValidatorManager {
   void log_validator_session_stats(BlockIdExt block_id, validatorsession::ValidatorSessionStats stats) override {
     UNREACHABLE();
   }
+  void get_out_msg_queue_size(BlockIdExt block_id, td::Promise<td::uint32> promise) override {
+    if (queue_size_counter_.empty()) {
+      queue_size_counter_ =
+          td::actor::create_actor<QueueSizeCounter>("queuesizecounter", td::Ref<MasterchainState>{}, actor_id(this));
+    }
+    td::actor::send_closure(queue_size_counter_, &QueueSizeCounter::get_queue_size, block_id, std::move(promise));
+  }
+  void get_block_handle_for_litequery(BlockIdExt block_id, td::Promise<ConstBlockHandle> promise) override {
+    get_block_handle(block_id, false, promise.wrap([](BlockHandle &&handle) -> ConstBlockHandle { return handle; }));
+  }
+  void get_block_data_for_litequery(BlockIdExt block_id, td::Promise<td::Ref<BlockData>> promise) override {
+    get_block_data_from_db_short(block_id, std::move(promise));
+  }
+  void get_block_state_for_litequery(BlockIdExt block_id, td::Promise<td::Ref<ShardState>> promise) override {
+    get_shard_state_from_db_short(block_id, std::move(promise));
+  }
+  void get_block_by_lt_for_litequery(AccountIdPrefixFull account, LogicalTime lt,
+                                             td::Promise<ConstBlockHandle> promise) override {
+    get_block_by_lt_from_db(account, lt, std::move(promise));
+  }
+  void get_block_by_unix_time_for_litequery(AccountIdPrefixFull account, UnixTime ts,
+                                                    td::Promise<ConstBlockHandle> promise) override {
+    get_block_by_unix_time_from_db(account, ts, std::move(promise));
+  }
+  void get_block_by_seqno_for_litequery(AccountIdPrefixFull account, BlockSeqno seqno,
+                                                td::Promise<ConstBlockHandle> promise) override {
+    get_block_by_seqno_from_db(account, seqno, std::move(promise));
+  }
+  void get_block_candidate_for_litequery(PublicKey source, BlockIdExt block_id, FileHash collated_data_hash,
+                                         td::Promise<BlockCandidate> promise) override {
+    promise.set_result(td::Status::Error("not implemented"));
+  }
+  void get_validator_groups_info_for_litequery(
+      td::optional<ShardIdFull> shard,
+      td::Promise<tl_object_ptr<lite_api::liteServer_nonfinal_validatorGroups>> promise) override {
+    promise.set_result(td::Status::Error("not implemented"));
+  }
 
  private:
   td::Ref<ValidatorManagerOptions> opts_;
@@ -445,6 +483,7 @@ class ValidatorManagerImpl : public ValidatorManager {
   std::string db_root_;
   ShardIdFull shard_to_generate_;
   BlockIdExt block_to_generate_;
+  td::actor::ActorOwn<QueueSizeCounter> queue_size_counter_;
 };
 
 }  // namespace validator

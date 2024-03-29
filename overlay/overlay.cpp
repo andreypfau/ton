@@ -75,7 +75,7 @@ OverlayImpl::OverlayImpl(td::actor::ActorId<keyring::Keyring> keyring, td::actor
     , frequent_dht_lookup_(opts.frequent_dht_lookup_) {
   overlay_id_ = id_full_.compute_short_id();
 
-  VLOG(OVERLAY_INFO) << this << ": creating " << (public_ ? "public" : "private");
+  std::cerr << this << ": creating " << (public_ ? "public" : "private") << " " << id_full_.pubkey().tl();
 
   for (auto &node : nodes) {
     CHECK(!public_);

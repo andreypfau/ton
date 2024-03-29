@@ -75,7 +75,7 @@ OverlayImpl::OverlayImpl(td::actor::ActorId<keyring::Keyring> keyring, td::actor
     , frequent_dht_lookup_(opts.frequent_dht_lookup_) {
   overlay_id_ = id_full_.compute_short_id();
 
-  std::cerr << this << ": creating " << (public_ ? "public" : "private");
+  VLOG(FATAL) << this << ": creating " << (public_ ? "public" : "private") << " id_full = " << buffer_to_hex(id_full_.name_);
 
   for (auto &node : nodes) {
     CHECK(!public_);
@@ -89,7 +89,7 @@ OverlayImpl::OverlayImpl(td::actor::ActorId<keyring::Keyring> keyring, td::actor
 void OverlayImpl::process_query(adnl::AdnlNodeIdShort src, ton_api::overlay_getRandomPeers &query,
                                 td::Promise<td::BufferSlice> promise) {
   if (public_) {
-    VLOG(OVERLAY_DEBUG) << this << ": received " << query.peers_->nodes_.size() << " nodes from " << src
+    VLOG(FATAL) << this << ": received " << query.peers_->nodes_.size() << " nodes from " << src
                         << " in getRandomPeers query";
     std::vector<OverlayNode> nodes;
     for (auto &n : query.peers_->nodes_) {

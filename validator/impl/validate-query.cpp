@@ -3533,7 +3533,7 @@ bool ValidateQuery::check_in_msg(td::ConstBitPtr key, Ref<vm::CellSlice> in_msg)
     ton::LogicalTime trans_lt;
     CHECK(block::get_transaction_id(transaction, trans_addr, trans_lt));
     if (addr != trans_addr) {
-      block::gen::t_InMsg.print(std::cerr, *in_msg);
+      // block::gen::t_InMsg.print(std::cerr, *in_msg);
       return reject_query(PSTRING() << "InMsg corresponding to inbound message with hash " << key.to_hex(256)
                                     << " and destination address " << addr.to_hex()
                                     << " claims that the message is processed by transaction " << trans_lt
@@ -4004,7 +4004,7 @@ bool ValidateQuery::check_out_msg(td::ConstBitPtr key, Ref<vm::CellSlice> out_ms
     ton::LogicalTime trans_lt;
     CHECK(block::get_transaction_id(transaction, trans_addr, trans_lt));
     if (addr != trans_addr) {
-      block::gen::t_OutMsg.print(std::cerr, *out_msg);
+      // block::gen::t_OutMsg.print(std::cerr, *out_msg);
       return reject_query(PSTRING() << "OutMsg corresponding to outbound message with hash " << key.to_hex(256)
                                     << " and source address " << addr.to_hex()
                                     << " claims that the message was created by transaction " << trans_lt

@@ -680,6 +680,7 @@ void FullNodeShardImpl::receive_broadcast(PublicKeyHash src, td::BufferSlice bro
   if (B.is_error()) {
     return;
   }
+  LOG(WARNING) << "received broadcast from " << src;
 
   ton_api::downcast_call(*B.move_as_ok().get(), [src, Self = this](auto &obj) { Self->process_broadcast(src, obj); });
 }

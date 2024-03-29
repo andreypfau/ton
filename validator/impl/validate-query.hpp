@@ -122,7 +122,7 @@ class ValidateQuery : public td::actor::Actor {
                 td::Promise<ValidateCandidateResult> promise, bool is_fake = false);
 
  private:
-  int verbosity{3 * 1};
+  int verbosity{0};
   int pending{0};
   const ShardIdFull shard_;
   const BlockIdExt id_;

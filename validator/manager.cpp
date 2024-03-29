@@ -370,6 +370,7 @@ void ValidatorManagerImpl::get_key_block_proof_link(BlockIdExt block_id, td::Pro
 
 void ValidatorManagerImpl::new_external_message(td::BufferSlice data) {
   if (!is_validator()) {
+    VLOG(VALIDATOR_NOTICE) << "dropping ext message: not a validator";
     return;
   }
   if (last_masterchain_state_.is_null()) {
@@ -377,6 +378,8 @@ void ValidatorManagerImpl::new_external_message(td::BufferSlice data) {
     return;
   }
   if (ext_messages_.size() > max_mempool_num()) {
+    VLOG(VALIDATOR_NOTICE) << "dropping ext message: ext_messages_.size() > max_mempool_num() | " << ext_messages_.size()
+                           << " > " << max_mempool_num();
     return;
   }
   auto R = create_ext_message(std::move(data), last_masterchain_state_->get_ext_msg_limits());
@@ -384,6 +387,7 @@ void ValidatorManagerImpl::new_external_message(td::BufferSlice data) {
     VLOG(VALIDATOR_NOTICE) << "dropping bad ext message: " << R.move_as_error();
     return;
   }
+  VLOG(VALIDATOR_DEBUG) << "new external message: " << R.move_as_ok()->hash().to_hex();
   add_external_message(R.move_as_ok());
 }
 

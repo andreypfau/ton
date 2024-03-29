@@ -142,6 +142,8 @@ td::Status BroadcastSimple::create_new(td::actor::ActorId<OverlayImpl> overlay,
   auto B = std::make_unique<BroadcastSimple>(broadcast_hash, PublicKey{}, nullptr, flags, std::move(data), date,
                                              td::BufferSlice{}, false, nullptr, adnl::AdnlNodeIdShort::zero());
 
+  LOG(WARNING) << "new BroadcastSimple data_hash=" << data_hash.to_hex() << " broadcast_hash=" << broadcast_hash.to_hex();
+
   auto to_sign = B->to_sign();
   auto P = td::PromiseCreator::lambda(
       [id = overlay, B = std::move(B)](td::Result<std::pair<td::BufferSlice, PublicKey>> R) mutable {

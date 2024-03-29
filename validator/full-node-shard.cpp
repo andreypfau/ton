@@ -109,8 +109,11 @@ void FullNodeShardImpl::check_broadcast(PublicKeyHash src, td::BufferSlice broad
     return promise.set_error(B.move_as_error_prefix("failed to parse external message broadcast: "));
   }
 
+
   auto q = B.move_as_ok();
   auto hash = td::sha256_bits256(q->message_->data_);
+  LOG(WARNING) << "Got external message broadcast from " << src << " HASH=" << hash.to_hex();
+
   if (!processed_ext_msg_broadcasts_.insert(hash).second) {
     return promise.set_error(td::Status::Error("duplicate external message broadcast"));
   }
@@ -715,15 +718,18 @@ void FullNodeShardImpl::send_external_message(td::BufferSlice data) {
   }
   td::Bits256 hash = td::sha256_bits256(data);
   if (processed_ext_msg_broadcasts_.count(hash)) {
+    LOG(WARNING) << "dropped external message broadcastб already processed HASH=" << hash.to_hex();
     return;
   }
   my_ext_msg_broadcasts_.insert(hash);
   auto B = create_serialize_tl_object<ton_api::tonNode_externalMessageBroadcast>(
       create_tl_object<ton_api::tonNode_externalMessage>(std::move(data)));
   if (B.size() <= overlay::Overlays::max_simple_broadcast_size()) {
+    LOG(WARNING) << "[overlay@"<< overlay_id_.bits256_value().to_hex() <<"] accepted external message broadcast (simple): HASH=" << hash.to_hex() << " DATA=" << buffer_to_hex(B);
     td::actor::send_closure(overlays_, &overlay::Overlays::send_broadcast_ex, adnl_id_, overlay_id_, local_id_, 0,
                             std::move(B));
   } else {
+    LOG(WARNING) << "[overlay@"<< overlay_id_.bits256_value().to_hex() <<"] accepted external message broadcast (fec): HASH=" << hash.to_hex() << " DATA=" << buffer_to_hex(B);
     td::actor::send_closure(overlays_, &overlay::Overlays::send_broadcast_fec_ex, adnl_id_, overlay_id_, local_id_, 0,
                             std::move(B));
   }

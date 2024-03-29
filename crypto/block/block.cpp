@@ -852,7 +852,7 @@ td::Status ShardState::unpack_out_msg_queue_info(Ref<vm::Cell> out_msg_queue_inf
       std::make_unique<vm::AugmentedDictionary>(std::move(qinfo.out_queue), 352, block::tlb::aug_OutMsgQueue);
   if (verbosity >= 3 * 1) {
     LOG(DEBUG) << "unpacking ProcessedUpto of our previous block " << id_.to_str();
-    block::gen::t_ProcessedInfo.print(std::cerr, qinfo.proc_info);
+    // block::gen::t_ProcessedInfo.print(std::cerr, qinfo.proc_info);
   }
   if (!block::gen::t_ProcessedInfo.validate_csr(1024, qinfo.proc_info)) {
     return td::Status::Error(

@@ -80,6 +80,7 @@ class OverlayIdFull {
     return OverlayIdShort{pubkey().compute_short_id().bits256_value()};
   }
 
+ private:
   td::BufferSlice name_;
 };
 

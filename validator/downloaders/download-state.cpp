@@ -216,7 +216,7 @@ void DownloadShardState::written_shard_state(td::Ref<ShardState> state) {
     td::actor::send_closure(SelfId, &DownloadShardState::written_block_handle);
   });
   LOG(WARNING) << "start archive shard state " << block_id_.to_str();
-  td::actor::send_closure(manager_, &ValidatorManager::archive, handle_, block_id_, std::move(P));
+  td::actor::send_closure(manager_, &ValidatorManager::archive, handle_, std::move(P));
 }
 
 void DownloadShardState::written_block_handle() {

@@ -430,7 +430,6 @@ void ValidatorManagerImpl::add_external_message(td::Ref<ExtMessage> msg, int pri
   ext_messages_hashes_[id.hash] = {priority, id};
 }
 void ValidatorManagerImpl::check_external_message(td::BufferSlice data, td::Promise<td::Ref<ExtMessage>> promise) {
-  LOG(INFO) << "check_external_message";
   auto state = do_get_last_liteserver_state();
   if (state.is_null()) {
     promise.set_error(td::Status::Error(ErrorCode::notready, "not ready"));
@@ -438,7 +437,7 @@ void ValidatorManagerImpl::check_external_message(td::BufferSlice data, td::Prom
   }
   double now = td::Clocks::system();
   if (now - state->get_unix_time() > 180.0) {
-    LOG(WARNING) << "last liteserver state (" << state->get_seqno() << " seqno) created " << (now - state->get_unix_time()) << " seconds ago, drop";
+    // LOG(WARNING) << "last liteserver state (" << state->get_seqno() << " seqno) created " << (now - state->get_unix_time()) << " seconds ago, drop";
     promise.set_error(td::Status::Error(ErrorCode::notready, "not ready"));
     return;
   }

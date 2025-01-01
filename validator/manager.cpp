@@ -436,6 +436,12 @@ void ValidatorManagerImpl::check_external_message(td::BufferSlice data, td::Prom
     promise.set_error(td::Status::Error(ErrorCode::notready, "not ready"));
     return;
   }
+  double now = td::Clocks::system();
+  if (now - state->get_unix_time() > 180.0) {
+    LOG(WARNING) << "last liteserver state (" << state->get_seqno() << " seqno) created " << (now - state->get_unix_time()) << " seconds ago, drop";
+    promise.set_error(td::Status::Error(ErrorCode::notready, "not ready"));
+    return;
+  }
   auto R = create_ext_message(std::move(data), state->get_ext_msg_limits());
   if (R.is_error()) {
     promise.set_error(R.move_as_error_prefix("failed to parse external message: "));

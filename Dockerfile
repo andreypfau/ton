@@ -19,7 +19,7 @@ COPY ./ ./
 
 RUN mkdir build && \
         cd build && \
-        cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPORTABLE=1 -DTON_ARCH= -DTON_USE_JEMALLOC=ON .. && \
+        cmake -GNinja -j 8 -DCMAKE_BUILD_TYPE=Release -DPORTABLE=1 -DTON_ARCH= -DTON_USE_JEMALLOC=ON .. && \
         ninja  validator-engine validator-engine-console generate-random-id
 # storage-daemon storage-daemon-cli tonlibjson fift func
 #    dht-server lite-client tolk rldp-http-proxy dht-server proxy-liteserver create-state \

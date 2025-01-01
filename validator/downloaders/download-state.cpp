@@ -208,13 +208,15 @@ void DownloadShardState::written_shard_state(td::Ref<ShardState> state) {
     handle_->set_masterchain_ref_block(masterchain_block_id_.seqno());
   }
 
-  auto P = td::PromiseCreator::lambda([SelfId = actor_id(this), handle = handle_](td::Result<td::Unit> R) {
+  auto P = td::PromiseCreator::lambda([SelfId = actor_id(this), handle = handle_, block_id = block_id_](td::Result<td::Unit> R) {
     CHECK(handle->handle_moved_to_archive());
     CHECK(handle->moved_to_archive())
     R.ensure();
+    LOG(WARNING) << "done archive shard state " << block_id.to_str();
     td::actor::send_closure(SelfId, &DownloadShardState::written_block_handle);
   });
-  td::actor::send_closure(manager_, &ValidatorManager::archive, handle_, std::move(P));
+  LOG(WARNING) << "start archive shard state " << block_id_.to_str();
+  td::actor::send_closure(manager_, &ValidatorManager::archive, handle_, block_id_, std::move(P));
 }
 
 void DownloadShardState::written_block_handle() {

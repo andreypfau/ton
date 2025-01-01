@@ -594,7 +594,7 @@ void AdnlPeerPairImpl::process_message(const adnlmessage::AdnlMessagePart &messa
   respond_with_nop();
   auto size = message.total_size();
   if (size > huge_packet_max_size()) {
-    VLOG(ADNL_WARNING) << this << ": dropping too big huge message: size=" << size;
+    // VLOG(ADNL_WARNING) << this << ": dropping too big huge message: size=" << size;
     return;
   }
   if (message.hash().is_zero()) {

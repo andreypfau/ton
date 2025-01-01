@@ -301,7 +301,7 @@ void FullNodeMasterImpl::process_query(adnl::AdnlNodeIdShort src, ton_api::tonNo
   auto P =
       td::PromiseCreator::lambda([promise = std::move(promise), cnt](td::Result<std::vector<BlockIdExt>> R) mutable {
         if (R.is_error()) {
-          LOG(WARNING) << "getnextkey: " << R.move_as_error();
+          // LOG(WARNING) << "getnextkey: " << R.move_as_error();
           auto x = create_serialize_tl_object<ton_api::tonNode_keyBlocks>(
               std::vector<tl_object_ptr<ton_api::tonNode_blockIdExt>>{}, false, true);
           promise.set_value(std::move(x));

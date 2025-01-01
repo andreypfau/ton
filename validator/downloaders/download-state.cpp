@@ -190,10 +190,12 @@ void DownloadShardState::checked_shard_state() {
 
 void DownloadShardState::written_shard_state_file() {
   LOG(WARNING) << "written shard state file " << block_id_.to_str();
-  auto P = td::PromiseCreator::lambda([SelfId = actor_id(this)](td::Result<td::Ref<ShardState>> R) {
+  auto P = td::PromiseCreator::lambda([SelfId = actor_id(this), block_id = block_id_](td::Result<td::Ref<ShardState>> R) {
     R.ensure();
+    LOG(WARNING) << "done set block state for handle " << block_id.to_str();
     td::actor::send_closure(SelfId, &DownloadShardState::written_shard_state, R.move_as_ok());
   });
+  LOG(WARNING) << "set block state for handle " << block_id_.to_str();
   td::actor::send_closure(manager_, &ValidatorManager::set_block_state, handle_, std::move(state_), std::move(P));
 }
 

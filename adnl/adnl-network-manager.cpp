@@ -114,7 +114,7 @@ void AdnlNetworkManagerImpl::receive_udp_message(td::UdpMessage message, size_t 
     return;
   }
   if (message.error.is_error()) {
-    VLOG(ADNL_WARNING) << this << ": dropping ERROR message: " << message.error;
+    // VLOG(ADNL_WARNING) << this << ": dropping ERROR message: " << message.error;
     return;
   }
   if (message.data.size() < 32) {

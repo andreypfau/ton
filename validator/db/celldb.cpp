@@ -247,7 +247,8 @@ void CellDbIn::store_cell(BlockIdExt block_id, td::Ref<vm::Cell> cell, td::Promi
             cell_db_statistics_.store_cell_prepare_time_.insert(timer_prepare.elapsed() * 1e6);
             cell_db_statistics_.store_cell_write_time_.insert(timer_write.elapsed() * 1e6);
           }
-          LOG(DEBUG) << "Stored state " << block_id.to_str();
+          timer.reset();
+          LOG(INFO) << "Stored state " << block_id.to_str();
           release_db();
         });
   });

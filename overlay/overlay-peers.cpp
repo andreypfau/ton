@@ -187,7 +187,7 @@ void OverlayImpl::add_peer(OverlayNode node) {
 
   auto S = node.check_signature();
   if (S.is_error()) {
-    VLOG(OVERLAY_WARNING) << this << ": bad signature: " << S;
+    // VLOG(OVERLAY_WARNING) << this << ": bad signature: " << S;
     return;
   }
 

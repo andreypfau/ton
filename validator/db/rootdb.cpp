@@ -228,16 +228,20 @@ void RootDb::get_block_candidate_by_block_id(BlockIdExt id, td::Promise<BlockCan
 
 void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
                                td::Promise<td::Ref<ShardState>> promise) {
+  LOG(INFO) << "store_block_state " << handle->id();
   if (handle->moved_to_archive()) {
     promise.set_value(std::move(state));
     return;
   }
   if (!handle->inited_state_boc()) {
     auto P = td::PromiseCreator::lambda([b = archive_db_.get(), root_hash = state->root_hash(), handle,
+                                         start_tome = td::Clocks::system(),
                                          promise = std::move(promise)](td::Result<td::Ref<vm::DataCell>> R) mutable {
       if (R.is_error()) {
         promise.set_error(R.move_as_error());
       } else {
+        double time = td::Clocks::system() - start_tome;
+        LOG(INFO) << "store_block_state - end store cell " << handle->id() << " with hash " << root_hash << " time: " << time;
         handle->set_state_root_hash(root_hash);
         handle->set_state_boc();
 
@@ -253,6 +257,7 @@ void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
         td::actor::send_closure(b, &ArchiveManager::update_handle, std::move(handle), std::move(P));
       }
     });
+    LOG(INFO) << "store_block_state - start store cell " << handle->id() << " with hash " << state->root_hash();
     td::actor::send_closure(cell_db_, &CellDb::store_cell, handle->id(), state->root_cell(), std::move(P));
   } else {
     get_block_state(handle, std::move(promise));

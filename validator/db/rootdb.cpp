@@ -260,6 +260,7 @@ void RootDb::store_block_state(BlockHandle handle, td::Ref<ShardState> state,
 }
 
 void RootDb::get_block_state(ConstBlockHandle handle, td::Promise<td::Ref<ShardState>> promise) {
+  LOG(INFO) << "RootDb::get_block_state " << handle->id();
   if (handle->inited_state_boc()) {
     if (handle->deleted_state_boc()) {
       promise.set_error(td::Status::Error(ErrorCode::error, "state already gc'd"));
@@ -267,14 +268,18 @@ void RootDb::get_block_state(ConstBlockHandle handle, td::Promise<td::Ref<ShardS
     }
     auto P =
         td::PromiseCreator::lambda([handle, promise = std::move(promise)](td::Result<td::Ref<vm::DataCell>> R) mutable {
+          LOG(INFO) << "RootDb::get_block_state loaded cell " << handle->state();
           if (R.is_error()) {
             promise.set_error(R.move_as_error());
           } else {
+            LOG(INFO) << "RootDb::get_block_state creating state " << handle->id() << " by cell " << handle->state();
             auto S = create_shard_state(handle->id(), R.move_as_ok());
             S.ensure();
+            LOG(INFO) << "RootDb::get_block_state created state " << handle->id() << " by cell " << handle->state();
             promise.set_value(S.move_as_ok());
           }
         });
+    LOG(INFO) << "RootDb::get_block_state loading cell... " << handle->state();
     td::actor::send_closure(cell_db_, &CellDb::load_cell, handle->state(), std::move(P));
   } else {
     promise.set_error(td::Status::Error(ErrorCode::notready, "state not in db"));

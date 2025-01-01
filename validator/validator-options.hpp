@@ -208,6 +208,7 @@ struct ValidatorManagerOptionsImpl : public ValidatorManagerOptions {
     session_logs_file_ = std::move(f);
   }
   void set_celldb_compress_depth(td::uint32 value) override {
+    LOG(WARNING) << "celldb_compress_depth=" << value;
     celldb_compress_depth_ = value;
   }
   void set_max_open_archive_files(size_t value) override {
@@ -232,6 +233,7 @@ struct ValidatorManagerOptionsImpl : public ValidatorManagerOptions {
     celldb_preload_all_ = value;
   }
   void set_celldb_in_memory(bool value) override {
+    LOG(WARNING) << "celldb_in_memory=" << value;
     celldb_in_memory_ = value;
   }
   void set_catchain_max_block_delay(double value) override {

@@ -663,9 +663,14 @@ class DynamicBagOfCellsDbImpl : public DynamicBagOfCellsDb, private ExtCellCreat
     pca_state_ = std::make_unique<PrepareCommitAsyncState>();
     pca_state_->executor_ = std::move(executor);
     pca_state_->promise_ = std::move(promise);
+    LOG(INFO) << "Prepare commit async started, to_inc count: " << to_inc_.size();
+    auto size_before = pca_state_->cells_.size();
     for (auto &new_cell : to_inc_) {
+      LOG(INFO) << " process new cell with depth: " << new_cell->get_depth();
       dfs_new_cells_in_db_async(new_cell);
     }
+    auto size_after = pca_state_->cells_.size();
+    LOG(INFO) << "new cells count: " << size_after - size_before;
     pca_state_->cells_.for_each([&](PrepareCommitAsyncState::CellInfo2 &info) {
       ++pca_state_->remaining_;
       if (info.remaining_children == 0) {

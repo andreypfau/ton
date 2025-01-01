@@ -543,6 +543,7 @@ void CellDbIn::migrate_cell(td::Bits256 hash) {
 }
 
 void CellDbIn::migrate_cells() {
+  LOG(WARNING) << "starting migrate_cells";
   migrate_after_ = td::Timestamp::never();
   if (db_busy_) {
     action_queue_.push([self = this](td::Result<td::Unit> R) mutable {

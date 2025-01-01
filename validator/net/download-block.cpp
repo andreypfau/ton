@@ -172,7 +172,7 @@ void DownloadBlock::got_node_to_download(adnl::AdnlNodeIdShort node) {
     return;
   }
 
-  VLOG(FULL_NODE_DEBUG) << "downloading proof for " << block_id_;
+  VLOG(INFO) << "downloading proof for " << block_id_ << " from " << download_from_;
 
   CHECK(!short_);
   auto P = td::PromiseCreator::lambda([SelfId = actor_id(this)](td::Result<td::BufferSlice> R) mutable {
@@ -196,7 +196,7 @@ void DownloadBlock::got_node_to_download(adnl::AdnlNodeIdShort node) {
 }
 
 void DownloadBlock::got_block_proof_description(td::BufferSlice proof_description) {
-  VLOG(FULL_NODE_DEBUG) << "downloaded proof description for " << block_id_;
+  VLOG(INFO) << "downloaded proof description for " << block_id_ << " from " << download_from_;
 
   auto F = fetch_tl_object<ton_api::tonNode_PreparedProof>(std::move(proof_description), true);
   if (F.is_error()) {
@@ -253,7 +253,7 @@ void DownloadBlock::got_block_proof_description(td::BufferSlice proof_descriptio
             }
           },
           [&](ton_api::tonNode_preparedProofEmpty &obj) {
-            abort_query(td::Status::Error(ErrorCode::notready, "proof not found"));
+            abort_query(td::Status::Error(ErrorCode::notready, PSTRING() << "proof not found from " << download_from_));
           }));
 }
 

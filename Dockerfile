@@ -33,27 +33,27 @@ RUN apt-get update && \
 
 RUN mkdir -p /var/ton-work/db /var/ton-work/scripts /usr/share/ton/smartcont/auto /usr/lib/fift/
 
-COPY --from=builder /ton/build/storage/storage-daemon/storage-daemon /usr/local/bin/
-COPY --from=builder /ton/build/storage/storage-daemon/storage-daemon-cli /usr/local/bin/
-COPY --from=builder /ton/build/lite-client/lite-client /usr/local/bin/
+#COPY --from=builder /ton/build/storage/storage-daemon/storage-daemon /usr/local/bin/
+#COPY --from=builder /ton/build/storage/storage-daemon/storage-daemon-cli /usr/local/bin/
+#COPY --from=builder /ton/build/lite-client/lite-client /usr/local/bin/
 COPY --from=builder /ton/build/validator-engine/validator-engine /usr/local/bin/
 COPY --from=builder /ton/build/validator-engine-console/validator-engine-console /usr/local/bin/
 COPY --from=builder /ton/build/utils/generate-random-id /usr/local/bin/
-COPY --from=builder /ton/build/blockchain-explorer/blockchain-explorer /usr/local/bin/
-COPY --from=builder /ton/build/crypto/create-state /usr/local/bin/
-COPY --from=builder /ton/build/utils/proxy-liteserver /usr/local/bin/
-COPY --from=builder /ton/build/dht-server/dht-server /usr/local/bin/
-COPY --from=builder /ton/build/rldp-http-proxy/rldp-http-proxy /usr/local/bin/
-COPY --from=builder /ton/build/http/http-proxy  /usr/local/bin/
-COPY --from=builder /ton/build/adnl/adnl-proxy  /usr/local/bin/
-COPY --from=builder /ton/build/tonlib/libtonlibjson.so /usr/local/bin/
-COPY --from=builder /ton/build/emulator/libemulator.so /usr/local/bin/
-COPY --from=builder /ton/build/tolk/tolk /usr/local/bin/
-COPY --from=builder /ton/build/crypto/fift /usr/local/bin/
-COPY --from=builder /ton/build/crypto/func /usr/local/bin/
-COPY --from=builder /ton/crypto/smartcont/* /usr/share/ton/smartcont/
-COPY --from=builder /ton/crypto/smartcont/auto/* /usr/share/ton/smartcont/auto/
-COPY --from=builder /ton/crypto/fift/lib/* /usr/lib/fift/
+#COPY --from=builder /ton/build/blockchain-explorer/blockchain-explorer /usr/local/bin/
+#COPY --from=builder /ton/build/crypto/create-state /usr/local/bin/
+#COPY --from=builder /ton/build/utils/proxy-liteserver /usr/local/bin/
+#COPY --from=builder /ton/build/dht-server/dht-server /usr/local/bin/
+#COPY --from=builder /ton/build/rldp-http-proxy/rldp-http-proxy /usr/local/bin/
+#COPY --from=builder /ton/build/http/http-proxy  /usr/local/bin/
+#COPY --from=builder /ton/build/adnl/adnl-proxy  /usr/local/bin/
+#COPY --from=builder /ton/build/tonlib/libtonlibjson.so /usr/local/bin/
+#COPY --from=builder /ton/build/emulator/libemulator.so /usr/local/bin/
+#COPY --from=builder /ton/build/tolk/tolk /usr/local/bin/
+#COPY --from=builder /ton/build/crypto/fift /usr/local/bin/
+#COPY --from=builder /ton/build/crypto/func /usr/local/bin/
+#COPY --from=builder /ton/crypto/smartcont/* /usr/share/ton/smartcont/
+#COPY --from=builder /ton/crypto/smartcont/auto/* /usr/share/ton/smartcont/auto/
+#COPY --from=builder /ton/crypto/fift/lib/* /usr/lib/fift/
 
 WORKDIR /var/ton-work/db
 COPY ./docker/init.sh ./docker/control.template /var/ton-work/scripts/

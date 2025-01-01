@@ -20,9 +20,10 @@ COPY ./ ./
 RUN mkdir build && \
         cd build && \
         cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPORTABLE=1 -DTON_ARCH= -DTON_USE_JEMALLOC=ON .. && \
-        ninja storage-daemon storage-daemon-cli tonlibjson fift func validator-engine validator-engine-console \
-    generate-random-id dht-server lite-client tolk rldp-http-proxy dht-server proxy-liteserver create-state \
-    blockchain-explorer emulator tonlibjson http-proxy adnl-proxy
+        ninja  validator-engine validator-engine-console generate-random-id
+# storage-daemon storage-daemon-cli tonlibjson fift func
+#    dht-server lite-client tolk rldp-http-proxy dht-server proxy-liteserver create-state \
+#    blockchain-explorer emulator tonlibjson http-proxy adnl-proxy
 
 FROM ubuntu:22.04
 RUN apt-get update && \

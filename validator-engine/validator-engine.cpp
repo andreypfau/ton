@@ -1838,12 +1838,14 @@ void ValidatorEngine::got_key(ton::PublicKey key) {
 }
 
 void ValidatorEngine::start() {
+  LOG(WARNING) << "Starting validator engine...";
   set_shard_check_function();
   read_config_ = true;
   start_adnl();
 }
 
 void ValidatorEngine::start_adnl() {
+  LOG(WARNING) << "Starting ADNL...";
   adnl_network_manager_ = ton::adnl::AdnlNetworkManager::create(config_.out_port);
   adnl_ = ton::adnl::Adnl::create(db_root_, keyring_.get());
   td::actor::send_closure(adnl_, &ton::adnl::Adnl::register_network_manager, adnl_network_manager_.get());
@@ -1900,6 +1902,7 @@ void ValidatorEngine::add_adnl(ton::PublicKeyHash id, AdnlCategory cat) {
 }
 
 void ValidatorEngine::started_adnl() {
+  LOG(WARNING) << "Started ADNL!";
   start_dht();
 }
 
@@ -1914,6 +1917,7 @@ void ValidatorEngine::add_dht(ton::PublicKeyHash id) {
 }
 
 void ValidatorEngine::start_dht() {
+  LOG(WARNING) << "Starting DHT...";
   for (auto &dht : config_.dht_ids) {
     add_dht(dht);
   }
@@ -1928,10 +1932,12 @@ void ValidatorEngine::start_dht() {
 }
 
 void ValidatorEngine::started_dht() {
+  LOG(WARNING) << "Started DHT!";
   start_rldp();
 }
 
 void ValidatorEngine::start_rldp() {
+  LOG(WARNING) << "Starting RLDP...";
   rldp_ = ton::rldp::Rldp::create(adnl_.get());
   rldp2_ = ton::rldp2::Rldp::create(adnl_.get());
   td::actor::send_closure(rldp_, &ton::rldp::Rldp::set_default_mtu, 2048);
@@ -1940,10 +1946,12 @@ void ValidatorEngine::start_rldp() {
 }
 
 void ValidatorEngine::started_rldp() {
+  LOG(WARNING) << "Started RLDP!";
   start_overlays();
 }
 
 void ValidatorEngine::start_overlays() {
+  LOG(WARNING) << "Starting overlays...";
   if (!default_dht_node_.is_zero()) {
     overlay_manager_ =
         ton::overlay::Overlays::create(db_root_, keyring_.get(), adnl_.get(), dht_nodes_[default_dht_node_].get());
@@ -1952,10 +1960,12 @@ void ValidatorEngine::start_overlays() {
 }
 
 void ValidatorEngine::started_overlays() {
+  LOG(WARNING) << "Started overlays!";
   start_validator();
 }
 
 void ValidatorEngine::start_validator() {
+  LOG(WARNING) << "Starting validator...";
   validator_options_.write().set_allow_blockchain_init(config_.validators.size() > 0);
   validator_options_.write().set_state_serializer_enabled(config_.state_serializer_enabled);
   load_collator_options();
@@ -1977,10 +1987,12 @@ void ValidatorEngine::start_validator() {
 }
 
 void ValidatorEngine::started_validator() {
+  LOG(WARNING) << "Started validator!";
   start_full_node();
 }
 
 void ValidatorEngine::start_full_node() {
+  LOG(WARNING) << "Starting full node...";
   if (!config_.full_node.is_zero() || config_.full_node_slaves.size() > 0) {
     auto pk = ton::PrivateKey{ton::privkeys::Ed25519::random()};
     auto short_id = pk.compute_short_id();
@@ -2023,10 +2035,12 @@ void ValidatorEngine::start_full_node() {
 }
 
 void ValidatorEngine::started_full_node() {
+  LOG(WARNING) << "Started full node!";
   start_lite_server();
 }
 
 void ValidatorEngine::add_lite_server(ton::PublicKeyHash id, td::uint16 port) {
+  LOG(INFO) << "Add lite server: " << id << "with port  " << port;
   td::actor::send_closure(adnl_, &ton::adnl::Adnl::add_id, ton::adnl::AdnlNodeIdFull{keys_[id]},
                           ton::adnl::AdnlAddressList{}, static_cast<td::uint8>(255));
   td::actor::send_closure(validator_manager_, &ton::validator::ValidatorManagerInterface::add_ext_server_id,
@@ -2035,6 +2049,7 @@ void ValidatorEngine::add_lite_server(ton::PublicKeyHash id, td::uint16 port) {
 }
 
 void ValidatorEngine::start_lite_server() {
+  LOG(WARNING) << "Starting lite server...";
   for (auto &s : config_.liteservers) {
     add_lite_server(s.second, static_cast<td::uint16>(s.first));
   }
@@ -2043,6 +2058,7 @@ void ValidatorEngine::start_lite_server() {
 }
 
 void ValidatorEngine::started_lite_server() {
+  LOG(WARNING) << "Started lite server!";
   start_control_interface();
 }
 
@@ -2080,6 +2096,7 @@ void ValidatorEngine::add_control_process(ton::PublicKeyHash id, td::uint16 port
 }
 
 void ValidatorEngine::start_control_interface() {
+  LOG(WARNING) << "Starting control interface...";
   std::vector<ton::adnl::AdnlNodeIdShort> c_ids;
 
   std::vector<td::uint16> ports;
@@ -2100,10 +2117,12 @@ void ValidatorEngine::started_control_interface(td::actor::ActorOwn<ton::adnl::A
       add_control_process(s.second.key, static_cast<td::uint16>(s.first), p.first, p.second);
     }
   }
+  LOG(WARNING) << "Started control interface!";
   start_full_node_masters();
 }
 
 void ValidatorEngine::start_full_node_masters() {
+  LOG(WARNING) << "Starting full node masters...";
   for (auto &x : config_.full_node_masters) {
     full_node_masters_.emplace(
         static_cast<td::uint16>(x.first),
@@ -2115,11 +2134,13 @@ void ValidatorEngine::start_full_node_masters() {
 }
 
 void ValidatorEngine::started_full_node_masters() {
+  LOG(WARNING) << "Started full node masters!";
   started();
 }
 
 void ValidatorEngine::started() {
   started_ = true;
+  LOG(WARNING) << "Started validator engine!";
 }
 
 void ValidatorEngine::try_add_adnl_node(ton::PublicKeyHash key, AdnlCategory cat, td::Promise<td::Unit> promise) {
@@ -4137,6 +4158,7 @@ void ValidatorEngine::process_control_query(td::uint16 port, ton::adnl::AdnlNode
     if (!started_) {
       return;
     }
+    LOG(INFO) << "processing lite server query from control interface";
     td::actor::send_closure(validator_manager_, &ton::validator::ValidatorManagerInterface::run_ext_query,
                             std::move(data), std::move(promise));
     return;

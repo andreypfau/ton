@@ -477,6 +477,11 @@ endif()
 add_executable(test-cells test/test-td-main.cpp ${CELLS_TEST_SOURCE})
 target_link_libraries(test-cells PRIVATE ton_crypto)
 
+add_executable(test-dict test/test-td-main.cpp
+        crypto/test/test_dict.cpp
+)
+target_link_libraries(test-dict PRIVATE ton_crypto)
+
 add_executable(test-fift test/test-td-main.cpp ${FIFT_TEST_SOURCE})
 target_link_libraries(test-fift PRIVATE fift-lib)
 
@@ -583,6 +588,7 @@ add_test(test-bigint test-bigint)
 add_test(test-vm test-vm ${TEST_OPTIONS})
 add_test(test-fift test-fift ${TEST_OPTIONS})
 add_test(test-cells test-cells ${TEST_OPTIONS})
+add_test(test-dict test-dict)
 add_test(test-smartcont test-smartcont)
 add_test(test-net test-net)
 add_test(test-actors test-tdactor)

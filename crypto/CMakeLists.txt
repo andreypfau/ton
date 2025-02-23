@@ -352,7 +352,9 @@ target_include_directories(ton_db PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
 target_link_libraries(ton_db PUBLIC tdutils tddb ton_crypto)
 
-add_executable(test-ed25519-crypto test/test-ed25519-crypto.cpp)
+add_executable(test-ed25519-crypto test/test-ed25519-crypto.cpp
+        test/test_dict.cpp
+)
 target_include_directories(test-ed25519-crypto PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_link_libraries(test-ed25519-crypto PUBLIC ton_crypto)
 

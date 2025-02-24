@@ -84,6 +84,7 @@ TypePtr TypeDataTuple::singleton;
 TypePtr TypeDataContinuation::singleton;
 TypePtr TypeDataNullLiteral::singleton;
 TypePtr TypeDataUnknown::singleton;
+TypePtr TypeDataNever::singleton;
 TypePtr TypeDataVoid::singleton;
 
 void type_system_init() {
@@ -96,6 +97,7 @@ void type_system_init() {
   TypeDataContinuation::singleton = new TypeDataContinuation;
   TypeDataNullLiteral::singleton = new TypeDataNullLiteral;
   TypeDataUnknown::singleton = new TypeDataUnknown;
+  TypeDataNever::singleton = new TypeDataNever;
   TypeDataVoid::singleton = new TypeDataVoid;
 }
 
@@ -326,53 +328,56 @@ bool TypeDataInt::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataBool::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataCell::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataSlice::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataBuilder::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataTuple::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataContinuation::can_rhs_be_assigned(TypePtr rhs) const {
   if (rhs == this) {
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataNullLiteral::can_rhs_be_assigned(TypePtr rhs) const {
-  return rhs == this;
+  if (rhs == this) {
+    return true;
+  }
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataNullable::can_rhs_be_assigned(TypePtr rhs) const {
@@ -385,11 +390,17 @@ bool TypeDataNullable::can_rhs_be_assigned(TypePtr rhs) const {
   if (const TypeDataNullable* rhs_nullable = rhs->try_as<TypeDataNullable>()) {
     return inner->can_rhs_be_assigned(rhs_nullable->inner);
   }
-  return inner->can_rhs_be_assigned(rhs);
+  if (inner->can_rhs_be_assigned(rhs)) {
+    return true;
+  }
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataFunCallable::can_rhs_be_assigned(TypePtr rhs) const {
-  return rhs == this;
+  if (rhs == this) {
+    return true;
+  }
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataGenericT::can_rhs_be_assigned(TypePtr rhs) const {
@@ -406,7 +417,7 @@ bool TypeDataTensor::can_rhs_be_assigned(TypePtr rhs) const {
     }
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataTypedTuple::can_rhs_be_assigned(TypePtr rhs) const {
@@ -418,7 +429,7 @@ bool TypeDataTypedTuple::can_rhs_be_assigned(TypePtr rhs) const {
     }
     return true;
   }
-  return false;
+  return rhs == TypeDataNever::create();
 }
 
 bool TypeDataUnknown::can_rhs_be_assigned(TypePtr rhs) const {
@@ -430,8 +441,15 @@ bool TypeDataUnresolved::can_rhs_be_assigned(TypePtr rhs) const {
   return false;
 }
 
+bool TypeDataNever::can_rhs_be_assigned(TypePtr rhs) const {
+  return true;
+}
+
 bool TypeDataVoid::can_rhs_be_assigned(TypePtr rhs) const {
-  return rhs == this;
+  if (rhs == this) {
+    return true;
+  }
+  return rhs == TypeDataNever::create();
 }
 
 
@@ -552,6 +570,10 @@ bool TypeDataUnresolved::can_be_casted_with_as_operator(TypePtr cast_to) const {
   return false;
 }
 
+bool TypeDataNever::can_be_casted_with_as_operator(TypePtr cast_to) const {
+  return true;
+}
+
 bool TypeDataVoid::can_be_casted_with_as_operator(TypePtr cast_to) const {
   return cast_to == this;
 }
@@ -618,6 +640,7 @@ static TypePtr parse_simple_type(Lexer& lex) {
         case 5:
           if (str == "slice") return TypeDataSlice::create();
           if (str == "tuple") return TypeDataTuple::create();
+          if (str == "never") return TypeDataNever::create();
           break;
         case 7:
           if (str == "builder") return TypeDataBuilder::create();
